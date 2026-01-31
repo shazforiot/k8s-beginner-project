@@ -1,15 +1,4 @@
-# Build stage
-FROM node:20-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files
-COPY app/package*.json ./
-
-# Install dependencies (production only)
-RUN npm ci --only=production
-
-# Production stage
+# Simple single-stage build (no dependencies needed)
 FROM node:20-alpine
 
 # Security: Run as non-root user
@@ -18,8 +7,8 @@ RUN addgroup -g 1001 -S nodejs && \
 
 WORKDIR /app
 
-# Copy from builder
-COPY --from=builder /app/node_modules ./node_modules
+# Copy application files
+COPY app/package*.json ./
 COPY app/index.js ./
 
 # Set ownership
