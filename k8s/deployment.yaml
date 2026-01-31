@@ -36,7 +36,7 @@ spec:
 
       containers:
         - name: app
-          image: ghcr.io/USERNAME/k8s-demo-app:latest  # Replace USERNAME
+          image: ghcr.io/shazforiot/k8s-beginner-project:main
           imagePullPolicy: Always
 
           # Container port

@@ -24,8 +24,8 @@ commonLabels:
 
 # Image customization (useful for CI/CD)
 images:
-  - name: ghcr.io/USERNAME/k8s-demo-app
-    newTag: latest
+  - name: ghcr.io/shazforiot/k8s-beginner-project
+    newTag: main
 
 # ConfigMap generator (alternative to configmap.yaml)
 # configMapGenerator:
