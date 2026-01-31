@@ -1,0 +1,24 @@
+# Service - Exposes pods and provides load balancing
+apiVersion: v1
+kind: Service
+metadata:
+  name: k8s-demo-service
+  namespace: k8s-demo
+  labels:
+    app: k8s-demo
+spec:
+  # Service type options:
+  # - ClusterIP (default): Internal only
+  # - NodePort: Expose on each node's IP
+  # - LoadBalancer: External load balancer (cloud)
+  type: LoadBalancer
+
+  # Route traffic to pods with this label
+  selector:
+    app: k8s-demo
+
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80         # Service port (external)
+      targetPort: 3000 # Container port (internal)

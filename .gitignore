@@ -1,0 +1,39 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment files (NEVER commit secrets!)
+.env
+.env.*
+*.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build
+dist/
+build/
+
+# Kubernetes secrets (NEVER commit!)
+*secret*.yaml
+*secrets*.yaml
+kubeconfig
+.kube/
+
+# Docker
+.docker/
+
+# Coverage
+coverage/
+.nyc_output/

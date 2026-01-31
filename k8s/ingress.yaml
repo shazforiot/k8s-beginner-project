@@ -1,0 +1,34 @@
+# Ingress - HTTP/HTTPS routing and load balancing
+# Requires an Ingress Controller (nginx, traefik, etc.)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: k8s-demo-ingress
+  namespace: k8s-demo
+  labels:
+    app: k8s-demo
+  annotations:
+    # Nginx ingress controller annotations
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+spec:
+  ingressClassName: nginx
+
+  rules:
+    # HTTP routing rule
+    - host: k8s-demo.local  # Replace with your domain
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: k8s-demo-service
+                port:
+                  number: 80
+
+  # TLS configuration (uncomment for HTTPS)
+  # tls:
+  #   - hosts:
+  #       - k8s-demo.local
+  #     secretName: k8s-demo-tls

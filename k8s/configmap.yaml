@@ -1,0 +1,12 @@
+# ConfigMap - Store non-sensitive configuration data
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: k8s-demo
+  labels:
+    app: k8s-demo
+data:
+  APP_NAME: "K8s Demo App"
+  APP_VERSION: "1.0.0"
+  LOG_LEVEL: "info"

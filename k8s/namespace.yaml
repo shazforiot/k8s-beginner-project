@@ -1,0 +1,8 @@
+# Namespace - Isolates resources in a virtual cluster
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: k8s-demo
+  labels:
+    app: k8s-demo
+    environment: development

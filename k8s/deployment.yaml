@@ -1,0 +1,94 @@
+# Deployment - Manages ReplicaSets and provides declarative updates
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: k8s-demo-app
+  namespace: k8s-demo
+  labels:
+    app: k8s-demo
+spec:
+  # Number of pod replicas
+  replicas: 3
+
+  # How to find pods to manage
+  selector:
+    matchLabels:
+      app: k8s-demo
+
+  # Update strategy
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1        # Max pods over desired count during update
+      maxUnavailable: 0  # Max pods unavailable during update
+
+  # Pod template
+  template:
+    metadata:
+      labels:
+        app: k8s-demo
+    spec:
+      # Security context for pod
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
+
+      containers:
+        - name: app
+          image: ghcr.io/USERNAME/k8s-demo-app:latest  # Replace USERNAME
+          imagePullPolicy: Always
+
+          # Container port
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+
+          # Environment from ConfigMap
+          envFrom:
+            - configMapRef:
+                name: app-config
+
+          # Resource limits (IMPORTANT for production!)
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+
+          # Liveness probe - restart if unhealthy
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Readiness probe - remove from service if not ready
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          # Security context for container
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+
+      # Restart policy
+      restartPolicy: Always
+
+      # Termination grace period
+      terminationGracePeriodSeconds: 30

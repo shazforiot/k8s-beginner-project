@@ -1,0 +1,13 @@
+{
+  "name": "k8s-demo-app",
+  "version": "1.0.0",
+  "description": "Simple Node.js app for Kubernetes learning",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": ["kubernetes", "k8s", "demo", "tutorial"],
+  "author": "",
+  "license": "MIT"
+}
