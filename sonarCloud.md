@@ -8,7 +8,7 @@ This guide explains how to onboard the `k8s-beginner-project` repository to Sona
 
 | Field | Value |
 |-------|-------|
-| Repository | `Thetips4you/k8s-beginner-project` |
+| Repository | `shazforiot/k8s-beginner-project` |
 | Language | JavaScript, Dockerfile |
 | Branch | `main` |
 
@@ -19,7 +19,7 @@ This guide explains how to onboard the `k8s-beginner-project` repository to Sona
 1. Go to **https://sonarcloud.io**
 2. Click **"Log in"** → Select **"GitHub"**
 3. Authorize SonarQube Cloud to access your GitHub account
-4. Grant access to your repositories (select `Thetips4you/k8s-beginner-project`)
+4. Grant access to your repositories (select `shazforiot/k8s-beginner-project`)
 
 ---
 
@@ -28,7 +28,7 @@ This guide explains how to onboard the `k8s-beginner-project` repository to Sona
 1. After login, click **"+"** (top-right) → **"Analyze new project"**
 2. If prompted, create an **Organization**:
    - Choose **"Import from GitHub"**
-   - Organization name: `Thetips4you` (or your GitHub username)
+   - Organization name: `shazforiot` (or your GitHub username)
    - Plan: **Free** (for public repos)
 3. Click **"Create"**
 
@@ -63,7 +63,7 @@ This guide explains how to onboard the `k8s-beginner-project` repository to Sona
 
 ### 4.2 Add Token to GitHub Secrets
 
-1. Go to your repo: https://github.com/Thetips4you/k8s-beginner-project
+1. Go to your repo: https://github.com/shazforiot/k8s-beginner-project
 2. Navigate to **Settings** → **Secrets and variables** → **Actions**
 3. Click **"New repository secret"**
 4. Add:
@@ -131,8 +131,8 @@ sonar-project.properties
 
 **Key Configuration:**
 ```properties
-sonar.projectKey=Thetips4you_k8s-beginner-project
-sonar.organization=Thetips4you
+sonar.projectKey=shazforiot_k8s-beginner-project
+sonar.organization=shazforiot
 sonar.projectName=k8s-beginner-project
 sonar.sources=app
 sonar.exclusions=**/node_modules/**,**/coverage/**,**/k8s/**
@@ -159,7 +159,7 @@ If you prefer a simpler setup without maintaining a CI pipeline, SonarCloud offe
 1. **Import Project in SonarCloud**
    - Go to https://sonarcloud.io/projects/create
    - Select **"Import from GitHub"**
-   - Choose organization: `Thetips4you`
+   - Choose organization: `shazforiot`
    - Select repository: `k8s-beginner-project`
 
 2. **Enable Automatic Analysis**
@@ -233,7 +233,7 @@ git push origin main
 
 Once the workflow completes, check results at:
 ```
-https://sonarcloud.io/project/overview?id=Thetips4you_k8s-beginner-project
+https://sonarcloud.io/project/overview?id=shazforiot_k8s-beginner-project
 ```
 
 ---
@@ -243,17 +243,17 @@ https://sonarcloud.io/project/overview?id=Thetips4you_k8s-beginner-project
 Add these badges to your `README.md`:
 
 ```markdown
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=Thetips4you_k8s-beginner-project&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=Thetips4you_k8s-beginner-project)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
 
-[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=Thetips4you_k8s-beginner-project&metric=bugs)](https://sonarcloud.io/summary/new_code?id=Thetips4you_k8s-beginner-project)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=bugs)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
 
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=Thetips4you_k8s-beginner-project&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=Thetips4you_k8s-beginner-project)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
 
-[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=Thetips4you_k8s-beginner-project&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=Thetips4you_k8s-beginner-project)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
 
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=Thetips4you_k8s-beginner-project&metric=coverage)](https://sonarcloud.io/summary/new_code?id=Thetips4you_k8s-beginner-project)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=coverage)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
 
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=Thetips4you_k8s-beginner-project&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=Thetips4you_k8s-beginner-project)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
 ```
 
 ---
@@ -304,7 +304,7 @@ k8s-beginner-project/
 ## 🔗 Useful Links
 
 - **SonarCloud Dashboard:** https://sonarcloud.io
-- **Project Overview:** https://sonarcloud.io/project/overview?id=Thetips4you_k8s-beginner-project
+- **Project Overview:** https://sonarcloud.io/project/overview?id=shazforiot_k8s-beginner-project
 - **SonarCloud Documentation:** https://docs.sonarcloud.io
 - **GitHub Actions for SonarCloud:** https://github.com/SonarSource/sonarcloud-github-action
 
