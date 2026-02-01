@@ -1,5 +1,11 @@
 # Kubernetes Beginner Project
 
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=bugs)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=shazforiot_k8s-beginner-project&metric=duplicated_lines_density)](https://sonarcloud.io/summary/new_code?id=shazforiot_k8s-beginner-project)
+
 A complete, production-ready Kubernetes demo project for beginners. Learn K8s by deploying a real application!
 
 ## Project Structure
