@@ -1,0 +1,103 @@
+# ═══════════════════════════════════════════════════════════════
+# Kubernetes Probes Demo — Full Deployment Manifest
+# Demonstrates: livenessProbe + readinessProbe + startupProbe
+# ═══════════════════════════════════════════════════════════════
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: probes-demo
+  labels:
+    app: probes-demo
+    version: "1.0"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: probes-demo
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0      # Never take a pod down during rollout
+      maxSurge: 1            # Create 1 extra pod during update
+  template:
+    metadata:
+      labels:
+        app: probes-demo
+    spec:
+      containers:
+        - name: probes-demo
+          image: probes-demo:latest    # Build with: docker build -t probes-demo:latest .
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+
+          # ─────────────────────────────────────────────────────
+          # STARTUP PROBE
+          # Disables liveness and readiness until this passes.
+          # Use for apps with slow initialization (JVM, ML models, etc.)
+          # ─────────────────────────────────────────────────────
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 0     # Start checking immediately
+            periodSeconds: 3           # Every 3 seconds
+            failureThreshold: 20       # Allow up to 60s (3s × 20) for startup
+            successThreshold: 1
+            timeoutSeconds: 2
+
+          # ─────────────────────────────────────────────────────
+          # LIVENESS PROBE — "Is the app alive?"
+          # Failure action: POD IS RESTARTED
+          # ─────────────────────────────────────────────────────
+          livenessProbe:
+            httpGet:
+              path: /healthz           # Lightweight: only checks internal state
+              port: 8080
+            initialDelaySeconds: 15    # Wait 15s after startup before first check
+            periodSeconds: 10          # Check every 10 seconds
+            timeoutSeconds: 5          # Timeout after 5s
+            failureThreshold: 3        # 3 consecutive failures → restart pod
+            successThreshold: 1        # 1 success = alive
+
+          # ─────────────────────────────────────────────────────
+          # READINESS PROBE — "Is the app ready for traffic?"
+          # Failure action: POD REMOVED FROM SERVICE ENDPOINTS (no restart)
+          # ─────────────────────────────────────────────────────
+          readinessProbe:
+            httpGet:
+              path: /readyz            # Checks dependencies: DB, cache, etc.
+              port: 8080
+            initialDelaySeconds: 5     # Start checking sooner than liveness
+            periodSeconds: 5           # More frequent — restore traffic quickly
+            timeoutSeconds: 3          # Shorter timeout
+            failureThreshold: 3        # 3 failures → removed from load balancer
+            successThreshold: 1        # 1 success = ready for traffic
+
+          # Resource limits (best practice)
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "100m"
+            limits:
+              memory: "128Mi"
+              cpu: "250m"
+
+---
+# ═══════════════════════════════════════════════════════════════
+# Service — Exposes the deployment
+# ═══════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: Service
+metadata:
+  name: probes-demo-svc
+spec:
+  selector:
+    app: probes-demo
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8080
+  type: ClusterIP
