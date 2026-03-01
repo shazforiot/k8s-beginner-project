@@ -1,0 +1,36 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+# Prod: pinned stable release — never use "latest" in production!
+images:
+  - name: webapp
+    newName: registry.example.com/webapp
+    newTag: v1.4.2              # ← only this line changes per release
+
+# Prod: inject namespace and name prefix for safety
+namespace: webapp-production
+namePrefix: prod-
+
+# Prod-specific patches (replicas + resource limits)
+patches:
+  - path: patch-replicas.yaml
+  - path: patch-resources.yaml
+
+# Prod ConfigMap — values differ from dev/staging
+configMapGenerator:
+  - name: app-env
+    literals:
+      - ENV=production
+      - LOG_LEVEL=warn
+      - DB_HOST=postgres.prod.svc.cluster.local
+      - CACHE_TTL=300
+
+# Prod Secret — sourced from file, NEVER commit the actual .env!
+# secretGenerator:
+#   - name: db-creds
+#     envs:
+#       - secrets/.env.prod
+#     type: Opaque

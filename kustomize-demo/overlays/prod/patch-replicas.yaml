@@ -1,0 +1,8 @@
+# Strategic Merge Patch: production replicas
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: webapp
+spec:
+  replicas: 5              # prod: 5 replicas for high availability

@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Point to shared base
+bases:
+  - ../../base
+
+# Dev: override image to use latest commit SHA
+images:
+  - name: webapp
+    newName: registry.example.com/webapp
+    newTag: dev-abc1234         # CI sets this to the commit SHA
+
+# Dev: patch replicas to 1 (same as base but explicit)
+patches:
+  - path: patch-replicas.yaml
+
+# Dev-specific ConfigMap
+configMapGenerator:
+  - name: app-env
+    literals:
+      - ENV=development
+      - LOG_LEVEL=debug
+      - DB_HOST=postgres.dev.svc.cluster.local
+      - CACHE_TTL=10

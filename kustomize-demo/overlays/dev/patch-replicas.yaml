@@ -1,0 +1,8 @@
+# Strategic Merge Patch — only specifies what changes from base
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp             # must match base deployment name
+  namespace: webapp
+spec:
+  replicas: 1              # dev: single replica to save resources

@@ -1,0 +1,24 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+  - ../../base
+
+# Staging: release candidate image
+images:
+  - name: webapp
+    newName: registry.example.com/webapp
+    newTag: v1.5.0-rc1           # release candidate
+
+# Staging-specific patches
+patches:
+  - path: patch-replicas.yaml
+
+# Staging ConfigMap
+configMapGenerator:
+  - name: app-env
+    literals:
+      - ENV=staging
+      - LOG_LEVEL=info
+      - DB_HOST=postgres.staging.svc.cluster.local
+      - CACHE_TTL=60

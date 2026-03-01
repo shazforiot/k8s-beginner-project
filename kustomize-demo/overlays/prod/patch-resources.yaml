@@ -1,0 +1,19 @@
+# Strategic Merge Patch: production resource allocation
+# Only the container resources block is specified — Kustomize merges it
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+  namespace: webapp
+spec:
+  template:
+    spec:
+      containers:
+        - name: webapp        # must match container name in base
+          resources:
+            requests:
+              cpu: "500m"     # 5× the dev request
+              memory: "512Mi"
+            limits:
+              cpu: "1000m"    # 1 full CPU max
+              memory: "1Gi"
