@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webapp
+  labels:
+    app: webapp
+spec:
+  # ─────────────────────────────────────────────
+  # INIT CONTAINERS — run before app, must pass
+  # ─────────────────────────────────────────────
+  initContainers:
+    - name: wait-for-mysql
+      image: busybox:1.36            # tiny 1.4MB image — perfect for shell scripts
+      command:
+        - sh
+        - -c
+        - |
+          echo "Checking MySQL availability..."
+          # Poll until DNS resolves — no more guessing with sleep 30!
+          until nslookup mysql.default.svc.cluster.local; do
+            echo "MySQL not ready yet, retrying in 2s..."
+            sleep 2
+          done
+          echo "MySQL is ready! ✅ Starting app..."
+
+  # ─────────────────────────────────────────────
+  # APP CONTAINERS — only start after all inits pass
+  # ─────────────────────────────────────────────
+  containers:
+    - name: webapp
+      image: nginx:1.25              # replace with your actual app image
+      ports:
+        - containerPort: 80
+
+---
+# A simple MySQL service to test against
+# (In a real setup this would be a full StatefulSet)
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql
+spec:
+  selector:
+    app: mysql
+  ports:
+    - port: 3306
+      targetPort: 3306

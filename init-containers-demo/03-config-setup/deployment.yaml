@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: config-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: config-app
+  template:
+    metadata:
+      labels:
+        app: config-app
+    spec:
+      serviceAccountName: vault-reader    # needs Vault read permissions
+
+      # ─────────────────────────────────────────────
+      # INIT CONTAINERS
+      # ─────────────────────────────────────────────
+      initContainers:
+        - name: setup-config
+          image: alpine:3.19              # small alpine for shell + wget + jq
+          command: ["/bin/sh", "-c"]
+          args:
+            - |
+              # Install jq for JSON processing
+              apk add --no-cache jq curl > /dev/null 2>&1
+
+              echo "🔐 Fetching configuration from config server..."
+
+              # Fetch config (replace with your actual config server URL)
+              curl -sf \
+                -H "Authorization: Bearer ${CONFIG_TOKEN}" \
+                "${CONFIG_SERVER}/api/v1/config/myapp" \
+                -o /config/app.json
+
+              # Validate JSON is valid
+              jq '.' /config/app.json > /dev/null || {
+                echo "❌ Invalid JSON received"
+                exit 1
+              }
+
+              # Lock down permissions — app reads, no one else writes
+              chmod 400 /config/app.json
+              chown 1000:1000 /config/app.json
+
+              echo "✅ Config written to /config/app.json"
+              echo "Config keys found: $(jq 'keys' /config/app.json)"
+
+          env:
+            - name: CONFIG_SERVER
+              value: "http://config-service.default.svc.cluster.local:8888"
+            - name: CONFIG_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: config-credentials
+                  key: token
+          volumeMounts:
+            - name: config-vol
+              mountPath: /config
+
+      # ─────────────────────────────────────────────
+      # APP CONTAINERS
+      # ─────────────────────────────────────────────
+      containers:
+        - name: app
+          image: myapp:v2.1
+          securityContext:
+            runAsUser: 1000             # must match chown above
+            runAsNonRoot: true
+          volumeMounts:
+            - name: config-vol
+              mountPath: /etc/myapp/config
+              readOnly: true             # 🔒 app can only read, never write
+          env:
+            - name: CONFIG_PATH
+              value: "/etc/myapp/config/app.json"
+
+      # ─────────────────────────────────────────────
+      # VOLUMES
+      # ─────────────────────────────────────────────
+      volumes:
+        - name: config-vol
+          emptyDir:
+            medium: Memory              # store in RAM — config never hits disk

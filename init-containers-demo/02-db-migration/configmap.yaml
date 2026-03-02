@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: db-migrations
+data:
+  # Migration files — filename format: {version}_{description}.{up|down}.sql
+  # These are idempotent — safe to run multiple times
+  "000001_create_users.up.sql": |
+    CREATE TABLE IF NOT EXISTS users (
+      id         SERIAL PRIMARY KEY,
+      email      VARCHAR(255) UNIQUE NOT NULL,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+  "000002_create_posts.up.sql": |
+    CREATE TABLE IF NOT EXISTS posts (
+      id         SERIAL PRIMARY KEY,
+      user_id    INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      title      VARCHAR(500) NOT NULL,
+      body       TEXT,
+      created_at TIMESTAMP DEFAULT NOW()
+    );
+
+  "000001_create_users.down.sql": |
+    DROP TABLE IF EXISTS users;
+
+  "000002_create_posts.down.sql": |
+    DROP TABLE IF EXISTS posts;
