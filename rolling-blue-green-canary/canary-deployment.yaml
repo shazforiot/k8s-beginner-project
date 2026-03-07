@@ -1,0 +1,162 @@
+# ─────────────────────────────────────────────────────────────
+# CANARY DEPLOYMENT — Kubernetes (replica-ratio method)
+# Tutorial: Blue-Green vs Canary vs Rolling
+#
+# Traffic split is controlled by the ratio of canary pods
+# to total pods. Both Deployments share the label app: my-app
+# so one Service routes to both.
+#
+# 1 canary pod out of 20 total = 5% traffic to canary
+# 4 canary pods out of 20 total = 20% traffic to canary
+# 20 canary pods, 0 stable = 100% (full cutover)
+#
+# Apply:  kubectl apply -f canary-deployment.yaml
+# Promote: kubectl scale deployment my-app-canary --replicas=10
+#          kubectl scale deployment my-app-stable --replicas=10
+# ─────────────────────────────────────────────────────────────
+
+# ── STABLE Deployment (v1 — 19 replicas = 95% of traffic) ───
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-stable
+  labels:
+    app: my-app
+    track: stable
+spec:
+  replicas: 19            # 95% of traffic (19 out of 20 total pods)
+  selector:
+    matchLabels:
+      app: my-app
+      track: stable
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: my-app
+        track: stable
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25    # ← current stable version
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+---
+# ── CANARY Deployment (v2 — 1 replica = 5% of traffic) ──────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-canary
+  labels:
+    app: my-app
+    track: canary
+spec:
+  replicas: 1             # 5% of traffic (1 out of 20 total pods)
+  selector:
+    matchLabels:
+      app: my-app
+      track: canary
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: my-app
+        track: canary
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.26    # ← new version getting 5% of traffic
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+---
+# ── Service — selects BOTH stable + canary pods ──────────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app
+spec:
+  selector:
+    app: my-app           # ← matches both stable (track: stable) and canary (track: canary)
+                          #    traffic is split by replica count ratio
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+
+# ─────────────────────────────────────────────────────────────
+# Step-by-step promotion workflow:
+#
+# Phase 1 — Start canary at 5% (1/20 pods):
+#   kubectl apply -f canary-deployment.yaml
+#   Watch metrics for 30 minutes. Check error rate + latency.
+#
+# Phase 2 — Increase to 25% (5/20 pods):
+#   kubectl scale deployment my-app-canary --replicas=5
+#   kubectl scale deployment my-app-stable --replicas=15
+#
+# Phase 3 — Increase to 50% (10/20 pods):
+#   kubectl scale deployment my-app-canary --replicas=10
+#   kubectl scale deployment my-app-stable --replicas=10
+#
+# Phase 4 — Full cutover (20/20 pods):
+#   kubectl scale deployment my-app-canary --replicas=20
+#   kubectl scale deployment my-app-stable --replicas=0
+#
+# Rollback at any phase — drain canary instantly:
+#   kubectl scale deployment my-app-canary --replicas=0
+#   kubectl scale deployment my-app-stable --replicas=20
+#
+# ─────────────────────────────────────────────────────────────
+# For PRECISE % splits (e.g. exactly 1% regardless of replicas),
+# use a service mesh or ingress controller:
+#
+# NGINX Ingress (weight annotation):
+#   nginx.ingress.kubernetes.io/canary: "true"
+#   nginx.ingress.kubernetes.io/canary-weight: "5"
+#
+# Istio VirtualService:
+#   http:
+#   - route:
+#     - destination:
+#         host: my-app-stable
+#       weight: 95
+#     - destination:
+#         host: my-app-canary
+#       weight: 5
+# ─────────────────────────────────────────────────────────────

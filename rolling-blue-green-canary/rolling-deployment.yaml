@@ -1,0 +1,97 @@
+# ─────────────────────────────────────────────────────────────
+# ROLLING DEPLOYMENT — Kubernetes default strategy
+# Tutorial: Blue-Green vs Canary vs Rolling
+#
+# Apply:  kubectl apply -f rolling-deployment.yaml
+# Watch:  kubectl rollout status deployment/my-app
+# Undo:   kubectl rollout undo deployment/my-app
+# ─────────────────────────────────────────────────────────────
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app: my-app
+spec:
+  replicas: 4
+
+  selector:
+    matchLabels:
+      app: my-app
+
+  # ── Rolling update strategy ──────────────────────────────
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1         # Allow 1 extra pod above desired (4+1=5 max during rollout)
+      maxUnavailable: 0   # Never kill a pod until the replacement is healthy
+
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.26    # ← Change this to trigger a rolling update
+          ports:
+            - containerPort: 80
+
+          # Readiness probe — pod only receives traffic when this passes.
+          # maxUnavailable: 0 means Kubernetes waits for THIS before removing v1.
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+
+          # Liveness probe — restarts the container if app hangs
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app
+spec:
+  selector:
+    app: my-app     # Matches all pods (v1 and v2 during rollout)
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+
+# ─────────────────────────────────────────────────────────────
+# Useful commands:
+#
+# Deploy v2 (update the image tag in the Deployment):
+#   kubectl set image deployment/my-app nginx=nginx:1.26
+#
+# Watch the rollout progress live:
+#   kubectl rollout status deployment/my-app
+#
+# See rollout history:
+#   kubectl rollout history deployment/my-app
+#
+# Undo the last rollout:
+#   kubectl rollout undo deployment/my-app
+#
+# Undo to a specific revision:
+#   kubectl rollout undo deployment/my-app --to-revision=2
+# ─────────────────────────────────────────────────────────────

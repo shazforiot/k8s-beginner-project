@@ -1,0 +1,144 @@
+# ─────────────────────────────────────────────────────────────
+# BLUE-GREEN DEPLOYMENT — Kubernetes
+# Tutorial: Blue-Green vs Canary vs Rolling
+#
+# How it works:
+#   1. Blue (v1) is live. Service selector points to slot: blue.
+#   2. Deploy Green (v2) — it runs but gets zero traffic.
+#   3. Test Green internally (port-forward or internal DNS).
+#   4. Flip: patch Service selector to slot: green.
+#   5. Rollback anytime: patch back to slot: blue.
+#
+# Apply:  kubectl apply -f blue-green-deployment.yaml
+# Flip:   kubectl patch service my-app -p '{"spec":{"selector":{"slot":"green"}}}'
+# Revert: kubectl patch service my-app -p '{"spec":{"selector":{"slot":"blue"}}}'
+# ─────────────────────────────────────────────────────────────
+
+# ── BLUE Deployment (v1 — currently live) ───────────────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-blue
+  labels:
+    app: my-app
+    slot: blue
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: my-app
+      slot: blue
+  strategy:
+    type: RollingUpdate         # Rolling within each slot is still fine
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: my-app
+        slot: blue
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.25      # ← current production version
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+---
+# ── GREEN Deployment (v2 — deploy, test, then flip) ─────────
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app-green
+  labels:
+    app: my-app
+    slot: green
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: my-app
+      slot: green
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: my-app
+        slot: green
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.26      # ← new version, gets no traffic until flip
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+
+---
+# ── Service — controls which slot receives traffic ───────────
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-app
+spec:
+  selector:
+    app: my-app
+    slot: blue          # ← change to 'green' to flip traffic (< 1 second)
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+
+# ─────────────────────────────────────────────────────────────
+# Step-by-step workflow:
+#
+# 1. Apply this file (Blue is live, Green is deployed but idle):
+#      kubectl apply -f blue-green-deployment.yaml
+#
+# 2. Test Green internally via port-forward (zero user traffic):
+#      kubectl port-forward deployment/my-app-green 80:80
+#      curl http://localhost:80/
+#
+# 3. Flip traffic to Green (instant, < 1 second):
+#      kubectl patch service my-app \
+#        -p '{"spec":{"selector":{"slot":"green"}}}'
+#
+# 4. Monitor Green in production. If issues arise, rollback:
+#      kubectl patch service my-app \
+#        -p '{"spec":{"selector":{"slot":"blue"}}}'
+#
+# 5. Once confident Green is stable, scale down Blue:
+#      kubectl scale deployment my-app-blue --replicas=0
+#
+# ⚠️  Cost note: During step 1-5 you're running 8 pods total (4+4).
+#     Scale Blue to 0 after confirming Green is stable.
+# ─────────────────────────────────────────────────────────────
