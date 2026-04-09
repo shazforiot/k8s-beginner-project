@@ -8,6 +8,14 @@
 
 A complete, production-ready Kubernetes demo project for beginners. Learn K8s by deploying a real application!
 
+<div align="center">
+  <h3>Kubernetes for Beginners: Deploy Your First App (2026)</h3>
+  <a href="https://www.youtube.com/watch?v=IluVqhoCChw">
+    <img src="https://img.youtube.com/vi/IluVqhoCChw/maxresdefault.jpg" alt="Watch the Kubernetes for Beginners Tutorial" style="width:100%; max-width:600px;">
+  </a>
+  <p><i>Click the image to watch the zero-to-hero Kubernetes guide on YouTube</i></p>
+</div>
+
 ## Project Structure
 
 ```
